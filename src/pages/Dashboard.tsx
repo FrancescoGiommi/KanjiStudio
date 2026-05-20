@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Flame, Star, BookOpen, Zap, RotateCcw, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 const JLPT_LEVELS = [
@@ -30,6 +31,7 @@ const itemVariants = {
 
 export default function Dashboard() {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
 
   return (
     <div className="min-h-screen bg-[#0f0f1a] text-white">
@@ -133,14 +135,15 @@ export default function Dashboard() {
             className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4"
           >
             {[
-              { icon: BookOpen, label: 'Studia nuovi kanji', sublabel: 'Esplora per livello', color: 'from-indigo-600 to-purple-600' },
-              { icon: Zap, label: 'Quiz veloce', sublabel: '10 domande random', color: 'from-yellow-500 to-orange-500' },
-              { icon: RotateCcw, label: 'Ripasso', sublabel: 'Kanji da ripassare oggi', color: 'from-green-500 to-teal-500' },
-            ].map(({ icon: Icon, label, sublabel, color }) => (
+              { icon: BookOpen, label: 'Studia nuovi kanji', sublabel: 'Esplora per livello', color: 'from-indigo-600 to-purple-600', action: () => navigate('/explore') },
+              { icon: Zap, label: 'Quiz veloce', sublabel: '10 domande random', color: 'from-yellow-500 to-orange-500', action: () => {} },
+              { icon: RotateCcw, label: 'Ripasso', sublabel: 'Kanji da ripassare oggi', color: 'from-green-500 to-teal-500', action: () => {} },
+            ].map(({ icon: Icon, label, sublabel, color, action }) => (
               <motion.button
                 key={label}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
+                onClick={action}
                 className={`flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-br ${color} shadow-lg text-left font-bold transition-all`}
               >
                 <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
