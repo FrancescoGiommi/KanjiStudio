@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { BookOpen, Zap, TrendingUp, ChevronRight } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
+import AuthModal from '../components/AuthModal'
 
 const PREVIEW_KANJI = ['日', '月', '火', '水', '木', '金', '土', '山', '川', '人', '口', '手', '目', '耳', '足']
 
@@ -36,17 +37,18 @@ const itemVariants = {
 }
 
 export default function LandingPage() {
-  const { login } = useAuth()
+  const [showAuth, setShowAuth] = useState(false)
 
   return (
     <div className="min-h-screen bg-[#0f0f1a] text-white">
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {/* Navbar */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
           KanjiStudio
         </span>
         <button
-          onClick={login}
+          onClick={() => setShowAuth(true)}
           className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition-colors text-sm font-medium"
         >
           Accedi
@@ -87,7 +89,7 @@ export default function LandingPage() {
           transition={{ delay: 0.5, duration: 0.4 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          onClick={login}
+          onClick={() => setShowAuth(true)}
           className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg shadow-lg shadow-indigo-900/40 transition-all"
         >
           Inizia gratis <ChevronRight size={20} />
@@ -152,7 +154,7 @@ export default function LandingPage() {
           <p className="text-3xl font-extrabold mb-3">Pronto a iniziare?</p>
           <p className="text-slate-400 mb-6">Crea il tuo account gratuito e inizia a studiare oggi.</p>
           <button
-            onClick={login}
+            onClick={() => setShowAuth(true)}
             className="px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold transition-colors"
           >
             Registrati gratis

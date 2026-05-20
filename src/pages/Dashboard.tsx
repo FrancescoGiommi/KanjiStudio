@@ -33,6 +33,8 @@ export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
+  const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Utente'
+
   return (
     <div className="min-h-screen bg-[#0f0f1a] text-white">
       {/* Navbar */}
@@ -41,7 +43,7 @@ export default function Dashboard() {
           KanjiStudio
         </span>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-400">{user?.displayName}</span>
+          <span className="text-sm text-slate-400">{displayName}</span>
           <button
             onClick={logout}
             className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors"
@@ -61,7 +63,7 @@ export default function Dashboard() {
         >
           <motion.div variants={itemVariants}>
             <h1 className="text-2xl font-extrabold">
-              Ciao, {user?.displayName}! 👋
+              Ciao, {displayName}! 👋
             </h1>
             <p className="text-slate-400 mt-1">Oggi è il momento di studiare. Continua così!</p>
           </motion.div>

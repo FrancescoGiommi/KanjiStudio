@@ -1,36 +1,59 @@
-import { createContext, useContext, useState, ReactNode } from 'react'
-
-interface User {
-  uid: string
-  displayName: string
-  email: string
-  photoURL?: string
-}
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  type User as FirebaseUser,
+} from 'firebase/auth'
+import { auth } from '../firebase/firebase'
 
 interface AuthContextType {
-  user: User | null
-  login: () => void
-  logout: () => void
+  user: FirebaseUser | null
+  loading: boolean
+  loginWithEmail: (email: string, password: string) => Promise<void>
+  registerWithEmail: (email: string, password: string) => Promise<void>
+  loginWithGoogle: () => Promise<void>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-// Mock user for development — replace with Firebase Auth later
-const MOCK_USER: User = {
-  uid: 'mock-001',
-  displayName: 'Naruto',
-  email: 'naruto@kanjistudio.dev',
-}
+const googleProvider = new GoogleAuthProvider()
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<FirebaseUser | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const login = () => setUser(MOCK_USER)
-  const logout = () => setUser(null)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser)
+      setLoading(false)
+    })
+    return unsubscribe
+  }, [])
+
+  const loginWithEmail = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password)
+  }
+
+  const registerWithEmail = async (email: string, password: string) => {
+    await createUserWithEmailAndPassword(auth, email, password)
+  }
+
+  const loginWithGoogle = async () => {
+    await signInWithPopup(auth, googleProvider)
+  }
+
+  const logout = async () => {
+    await signOut(auth)
+  }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, loading, loginWithEmail, registerWithEmail, loginWithGoogle, logout }}>
+      {!loading && children}
     </AuthContext.Provider>
   )
 }
