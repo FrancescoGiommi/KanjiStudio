@@ -1,27 +1,45 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
   signOut,
   type User as FirebaseUser,
 } from 'firebase/auth'
-import { auth } from '../firebase/firebase'
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { auth, db } from '../firebase/firebase'
 
 interface AuthContextType {
   user: FirebaseUser | null
   loading: boolean
   loginWithEmail: (email: string, password: string) => Promise<void>
   registerWithEmail: (email: string, password: string) => Promise<void>
-  loginWithGoogle: () => Promise<void>
   logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-const googleProvider = new GoogleAuthProvider()
+async function createUserProfileIfMissing(user: FirebaseUser) {
+  const ref = doc(db, 'users', user.uid)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName ?? user.email?.split('@')[0] ?? 'Utente',
+      createdAt: serverTimestamp(),
+      streak: 0,
+      lastStudyDate: null,
+      progress: {
+        N5: { learned: [], total: 103 },
+        N4: { learned: [], total: 181 },
+        N3: { learned: [], total: 361 },
+        N2: { learned: [], total: 367 },
+        N1: { learned: [], total: 1232 },
+      },
+    })
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null)
@@ -40,11 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const registerWithEmail = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password)
-  }
-
-  const loginWithGoogle = async () => {
-    await signInWithPopup(auth, googleProvider)
+    const { user } = await createUserWithEmailAndPassword(auth, email, password)
+    await createUserProfileIfMissing(user)
   }
 
   const logout = async () => {
@@ -52,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithEmail, registerWithEmail, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, loginWithEmail, registerWithEmail, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   )

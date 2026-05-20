@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Mail, Lock, Chrome } from 'lucide-react'
+import { X, Mail, Lock } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 interface AuthModalProps {
@@ -8,7 +8,7 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ onClose }: AuthModalProps) {
-  const { loginWithEmail, registerWithEmail, loginWithGoogle } = useAuth()
+  const { loginWithEmail, registerWithEmail } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -42,19 +42,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     }
   }
 
-  const handleGoogle = async () => {
-    setError('')
-    setLoading(true)
-    try {
-      await loginWithGoogle()
-      onClose()
-    } catch {
-      setError('Accesso con Google fallito.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <AnimatePresence>
       <motion.div
@@ -83,20 +70,6 @@ export default function AuthModal({ onClose }: AuthModalProps) {
             {mode === 'login' ? 'Accedi per continuare a studiare.' : 'Inizia il tuo percorso JLPT.'}
           </p>
 
-          {/* Google */}
-          <button
-            onClick={handleGoogle}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors font-medium mb-4 disabled:opacity-50"
-          >
-            <Chrome size={18} /> Continua con Google
-          </button>
-
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-slate-500">oppure</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="relative">
