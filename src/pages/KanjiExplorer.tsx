@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import kanjiData, { getKanjiByLevel, searchKanji, type Kanji } from '../data/kanjiData'
 import KanjiCard from '../components/KanjiCard'
 import KanjiDetailModal from '../components/KanjiDetailModal'
+import { useAuth } from '../contexts/AuthContext'
 
 type Level = 1 | 2 | 3 | 4 | 5
 
@@ -20,6 +21,7 @@ const TOTAL_BY_LEVEL: Record<Level, number> = { 5: 103, 4: 181, 3: 361, 2: 367, 
 
 export default function KanjiExplorer() {
   const navigate = useNavigate()
+  const { learnedKanji, toggleLearned, user } = useAuth()
   const [activeLevel, setActiveLevel] = useState<Level>(5)
   const [query, setQuery] = useState('')
   const [selectedKanji, setSelectedKanji] = useState<Kanji | null>(null)
@@ -112,7 +114,7 @@ export default function KanjiExplorer() {
                 key={k.character}
                 variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1 } }}
               >
-                <KanjiCard kanji={k} onClick={setSelectedKanji} />
+                <KanjiCard kanji={k} onClick={setSelectedKanji} learned={learnedKanji.has(k.character)} />
               </motion.div>
             ))}
           </motion.div>
@@ -120,11 +122,16 @@ export default function KanjiExplorer() {
 
         {/* Dataset note */}
         <p className="text-center text-xs text-slate-600 mt-10">
-          Dataset mock — verrà sostituito con il dataset completo KanjiAPI N1–N5
+          Dataset KanjiAPI · N1–N5 completo
         </p>
       </main>
 
-      <KanjiDetailModal kanji={selectedKanji} onClose={() => setSelectedKanji(null)} />
+      <KanjiDetailModal
+        kanji={selectedKanji}
+        onClose={() => setSelectedKanji(null)}
+        isLearned={selectedKanji ? learnedKanji.has(selectedKanji.character) : false}
+        onToggleLearned={user && selectedKanji ? () => toggleLearned(selectedKanji.character, selectedKanji.jlpt) : undefined}
+      />
     </div>
   )
 }

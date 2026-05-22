@@ -2,13 +2,14 @@ import { motion } from 'framer-motion'
 import { Flame, Star, BookOpen, Zap, RotateCcw, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import kanjiData from '../data/kanjiData'
 
-const JLPT_LEVELS = [
-  { level: 'N5', total: 103, learned: 103, color: 'from-green-400 to-emerald-500' },
-  { level: 'N4', total: 181, learned: 74, color: 'from-teal-400 to-cyan-500' },
-  { level: 'N3', total: 361, learned: 30, color: 'from-blue-400 to-indigo-500' },
-  { level: 'N2', total: 367, learned: 5, color: 'from-purple-400 to-violet-500' },
-  { level: 'N1', total: 1232, learned: 0, color: 'from-pink-500 to-rose-500' },
+const LEVEL_META = [
+  { level: 'N5', jlpt: 5 as const, total: 103, color: 'from-green-400 to-emerald-500' },
+  { level: 'N4', jlpt: 4 as const, total: 181, color: 'from-teal-400 to-cyan-500' },
+  { level: 'N3', jlpt: 3 as const, total: 361, color: 'from-blue-400 to-indigo-500' },
+  { level: 'N2', jlpt: 2 as const, total: 367, color: 'from-purple-400 to-violet-500' },
+  { level: 'N1', jlpt: 1 as const, total: 1232, color: 'from-pink-500 to-rose-500' },
 ]
 
 const KANJI_OF_THE_DAY = {
@@ -30,10 +31,18 @@ const itemVariants = {
 }
 
 export default function Dashboard() {
-  const { user, logout } = useAuth()
+  const { user, logout, learnedKanji } = useAuth()
   const navigate = useNavigate()
 
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Utente'
+
+  const jlptLevels = LEVEL_META.map(({ level, jlpt, total, color }) => {
+    const inDataset = kanjiData.filter((k) => k.jlpt === jlpt)
+    const learned = inDataset.filter((k) => learnedKanji.has(k.character)).length
+    return { level, total, learned, color }
+  })
+
+  const totalLearned = jlptLevels.reduce((s, l) => s + l.learned, 0)
 
   return (
     <div className="min-h-screen bg-[#0f0f1a] text-white">
@@ -75,6 +84,17 @@ export default function Dashboard() {
           </motion.div>
         </motion.div>
 
+        {/* Totale kanji imparati */}
+        <motion.div
+          variants={itemVariants}
+          className="mb-6 px-6 py-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between"
+        >
+          <span className="text-slate-400 text-sm">Kanji imparati totali</span>
+          <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            {totalLearned} <span className="text-base font-normal text-slate-500">/ 2244</span>
+          </span>
+        </motion.div>
+
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -109,7 +129,7 @@ export default function Dashboard() {
               <BookOpen size={18} className="text-indigo-400" /> Progressi per livello
             </h2>
             <div className="flex flex-col gap-4">
-              {JLPT_LEVELS.map(({ level, total, learned, color }) => {
+              {jlptLevels.map(({ level, total, learned, color }) => {
                 const pct = Math.round((learned / total) * 100)
                 return (
                   <div key={level}>

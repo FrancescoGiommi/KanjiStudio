@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Brush } from 'lucide-react'
+import { X, Brush, CheckCircle2, Circle } from 'lucide-react'
 import type { Kanji } from '../data/kanjiData'
 
 const LEVEL_COLORS: Record<number, string> = {
@@ -13,9 +13,11 @@ const LEVEL_COLORS: Record<number, string> = {
 interface KanjiDetailModalProps {
   kanji: Kanji | null
   onClose: () => void
+  isLearned?: boolean
+  onToggleLearned?: () => void
 }
 
-export default function KanjiDetailModal({ kanji, onClose }: KanjiDetailModalProps) {
+export default function KanjiDetailModal({ kanji, onClose, isLearned = false, onToggleLearned }: KanjiDetailModalProps) {
   return (
     <AnimatePresence>
       {kanji && (
@@ -120,6 +122,24 @@ export default function KanjiDetailModal({ kanji, onClose }: KanjiDetailModalPro
                 <p className="mt-4 text-center text-xs text-slate-500">
                   Classe scolastica: {kanji.grade}° anno
                 </p>
+              )}
+
+              {/* Segna come imparato */}
+              {onToggleLearned && (
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onToggleLearned}
+                  className={`mt-5 w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all
+                    ${ isLearned
+                      ? 'bg-green-600/20 border border-green-500/50 text-green-400 hover:bg-green-600/30'
+                      : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:border-indigo-500/50'
+                    }`}
+                >
+                  {isLearned
+                    ? <><CheckCircle2 size={16} /> Imparato!</>
+                    : <><Circle size={16} /> Segna come imparato</>
+                  }
+                </motion.button>
               )}
             </div>
           </motion.div>
