@@ -66,11 +66,20 @@ export default function KanjiDetailModal({ kanji, onClose }: KanjiDetailModalPro
               {/* Meanings */}
               <div className="mt-4 mb-6 text-center flex flex-col gap-1">
                 <p className="text-xl font-bold text-white capitalize">
-                  {kanji.meanings_it.join(', ')}
+                  {(kanji.meanings_it && kanji.meanings_it.length > 0 ? kanji.meanings_it : kanji.meanings).join(', ')}
                 </p>
-                <p className="text-base text-indigo-300">
-                  {kanji.meanings_ja.join('・')}
-                </p>
+                {(() => {
+                  const ja = kanji.meanings_ja && kanji.meanings_ja.length > 0
+                    ? kanji.meanings_ja
+                    : kanji.readings_kun.length > 0
+                      ? kanji.readings_kun
+                      : kanji.readings_on
+                  return ja.length > 0 ? (
+                    <p className="text-base text-indigo-300">
+                      {ja.join('・')}
+                    </p>
+                  ) : null
+                })()}
                 <p className="text-xs text-slate-500 mt-0.5">
                   {kanji.meanings.join(', ')}
                 </p>
