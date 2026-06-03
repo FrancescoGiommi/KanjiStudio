@@ -64,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
       if (firebaseUser) {
+        await createUserProfileIfMissing(firebaseUser)
         const learned = await loadLearnedKanji(firebaseUser.uid)
         setLearnedKanji(learned)
       } else {
