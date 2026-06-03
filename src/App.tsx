@@ -4,6 +4,8 @@ import HomePage from './pages/HomePage'
 import KanjiExplorer from './pages/KanjiExplorer'
 import Dashboard from './pages/Dashboard'
 import LandingPage from './pages/LandingPage'
+import QuizPage from './pages/QuizPage'
+import ReviewPage from './pages/ReviewPage'
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/explore" element={<KanjiExplorer />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/quiz" element={<QuizPage />} />
+          <Route path="/review" element={<ReviewPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

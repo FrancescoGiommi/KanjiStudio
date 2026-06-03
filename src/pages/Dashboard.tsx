@@ -158,8 +158,8 @@ export default function Dashboard() {
           >
             {[
               { icon: BookOpen, label: 'Studia nuovi kanji', sublabel: 'Esplora per livello', color: 'from-indigo-600 to-purple-600', action: () => navigate('/explore') },
-              { icon: Zap, label: 'Quiz veloce', sublabel: '10 domande random', color: 'from-yellow-500 to-orange-500', action: () => {} },
-              { icon: RotateCcw, label: 'Ripasso', sublabel: 'Kanji da ripassare oggi', color: 'from-green-500 to-teal-500', action: () => {} },
+              { icon: Zap, label: 'Quiz veloce', sublabel: '10 domande random', color: 'from-yellow-500 to-orange-500', action: () => navigate('/quiz') },
+              { icon: RotateCcw, label: 'Ripasso', sublabel: 'Kanji da ripassare oggi', color: 'from-green-500 to-teal-500', action: () => navigate('/review') },
             ].map(({ icon: Icon, label, sublabel, color, action }) => (
               <motion.button
                 key={label}
