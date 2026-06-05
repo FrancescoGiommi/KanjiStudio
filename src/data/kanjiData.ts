@@ -16,6 +16,18 @@ const kanjiData = rawData as Kanji[]
 
 export default kanjiData
 
+// Conteggi derivati dal dataset reale: unica fonte di verità per i totali,
+// così i numeri mostrati non possono più disallinearsi dai kanji effettivi.
+export const LEVEL_COUNTS: Record<1 | 2 | 3 | 4 | 5, number> = kanjiData.reduce(
+  (acc, k) => {
+    acc[k.jlpt] += 1
+    return acc
+  },
+  { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<1 | 2 | 3 | 4 | 5, number>,
+)
+
+export const TOTAL_COUNT = kanjiData.length
+
 export const getKanjiByLevel = (level: 1 | 2 | 3 | 4 | 5): Kanji[] =>
   kanjiData.filter((k) => k.jlpt === level)
 

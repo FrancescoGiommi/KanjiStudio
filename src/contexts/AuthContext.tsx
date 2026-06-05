@@ -9,6 +9,7 @@ import {
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../firebase/firebase'
 import { createReview, deleteReview } from '../srs/reviews'
+import { LEVEL_COUNTS } from '../data/kanjiData'
 
 interface AuthContextType {
   user: FirebaseUser | null
@@ -34,11 +35,11 @@ async function createUserProfileIfMissing(user: FirebaseUser) {
       streak: 0,
       lastStudyDate: null,
       progress: {
-        N5: { learned: [], total: 103 },
-        N4: { learned: [], total: 181 },
-        N3: { learned: [], total: 361 },
-        N2: { learned: [], total: 367 },
-        N1: { learned: [], total: 1232 },
+        N5: { learned: [], total: LEVEL_COUNTS[5] },
+        N4: { learned: [], total: LEVEL_COUNTS[4] },
+        N3: { learned: [], total: LEVEL_COUNTS[3] },
+        N2: { learned: [], total: LEVEL_COUNTS[2] },
+        N1: { learned: [], total: LEVEL_COUNTS[1] },
       },
     })
   }

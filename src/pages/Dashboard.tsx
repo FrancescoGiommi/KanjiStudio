@@ -3,15 +3,15 @@ import { motion } from 'framer-motion'
 import { Flame, Star, BookOpen, Zap, RotateCcw, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import kanjiData from '../data/kanjiData'
+import kanjiData, { LEVEL_COUNTS, TOTAL_COUNT } from '../data/kanjiData'
 import { countDueReviews } from '../srs/reviews'
 
 const LEVEL_META = [
-  { level: 'N5', jlpt: 5 as const, total: 103, color: 'from-green-400 to-emerald-500' },
-  { level: 'N4', jlpt: 4 as const, total: 181, color: 'from-teal-400 to-cyan-500' },
-  { level: 'N3', jlpt: 3 as const, total: 361, color: 'from-blue-400 to-indigo-500' },
-  { level: 'N2', jlpt: 2 as const, total: 367, color: 'from-purple-400 to-violet-500' },
-  { level: 'N1', jlpt: 1 as const, total: 1232, color: 'from-pink-500 to-rose-500' },
+  { level: 'N5', jlpt: 5 as const, color: 'from-green-400 to-emerald-500' },
+  { level: 'N4', jlpt: 4 as const, color: 'from-teal-400 to-cyan-500' },
+  { level: 'N3', jlpt: 3 as const, color: 'from-blue-400 to-indigo-500' },
+  { level: 'N2', jlpt: 2 as const, color: 'from-purple-400 to-violet-500' },
+  { level: 'N1', jlpt: 1 as const, color: 'from-pink-500 to-rose-500' },
 ]
 
 const KANJI_OF_THE_DAY = {
@@ -44,10 +44,10 @@ export default function Dashboard() {
 
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Utente'
 
-  const jlptLevels = LEVEL_META.map(({ level, jlpt, total, color }) => {
+  const jlptLevels = LEVEL_META.map(({ level, jlpt, color }) => {
     const inDataset = kanjiData.filter((k) => k.jlpt === jlpt)
     const learned = inDataset.filter((k) => learnedKanji.has(k.character)).length
-    return { level, total, learned, color }
+    return { level, total: LEVEL_COUNTS[jlpt], learned, color }
   })
 
   const totalLearned = jlptLevels.reduce((s, l) => s + l.learned, 0)
@@ -99,7 +99,7 @@ export default function Dashboard() {
         >
           <span className="text-slate-400 text-sm">Kanji imparati totali</span>
           <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            {totalLearned} <span className="text-base font-normal text-slate-500">/ 2244</span>
+            {totalLearned} <span className="text-base font-normal text-slate-500">/ {TOTAL_COUNT}</span>
           </span>
         </motion.div>
 
