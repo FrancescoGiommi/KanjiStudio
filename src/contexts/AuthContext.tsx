@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../firebase/firebase'
+import { createReview, deleteReview } from '../srs/reviews'
 
 interface AuthContextType {
   user: FirebaseUser | null
@@ -94,9 +95,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const field = `progress.N${jlpt}.learned`
     if (learnedKanji.has(character)) {
       await updateDoc(ref, { [field]: arrayRemove(character) })
+      await deleteReview(user.uid, character)
       setLearnedKanji((prev) => { const next = new Set(prev); next.delete(character); return next })
     } else {
       await updateDoc(ref, { [field]: arrayUnion(character) })
+      await createReview(user.uid, character, jlpt, Date.now())
       setLearnedKanji((prev) => new Set([...prev, character]))
     }
   }

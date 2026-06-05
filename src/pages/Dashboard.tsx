@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Flame, Star, BookOpen, Zap, RotateCcw, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import kanjiData from '../data/kanjiData'
+import { countDueReviews } from '../srs/reviews'
 
 const LEVEL_META = [
   { level: 'N5', jlpt: 5 as const, total: 103, color: 'from-green-400 to-emerald-500' },
@@ -33,6 +35,12 @@ const itemVariants = {
 export default function Dashboard() {
   const { user, logout, learnedKanji } = useAuth()
   const navigate = useNavigate()
+  const [dueCount, setDueCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!user) return
+    countDueReviews(user.uid, Date.now()).then(setDueCount).catch(() => setDueCount(null))
+  }, [user])
 
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Utente'
 
@@ -159,7 +167,7 @@ export default function Dashboard() {
             {[
               { icon: BookOpen, label: 'Studia nuovi kanji', sublabel: 'Esplora per livello', color: 'from-indigo-600 to-purple-600', action: () => navigate('/explore') },
               { icon: Zap, label: 'Quiz veloce', sublabel: '10 domande random', color: 'from-yellow-500 to-orange-500', action: () => navigate('/quiz') },
-              { icon: RotateCcw, label: 'Ripasso', sublabel: 'Kanji da ripassare oggi', color: 'from-green-500 to-teal-500', action: () => navigate('/review') },
+              { icon: RotateCcw, label: 'Ripasso', sublabel: dueCount === null ? 'Kanji da ripassare oggi' : dueCount === 0 ? 'Nessun ripasso per ora' : `${dueCount} kanji da ripassare`, color: 'from-green-500 to-teal-500', action: () => navigate('/review') },
             ].map(({ icon: Icon, label, sublabel, color, action }) => (
               <motion.button
                 key={label}
