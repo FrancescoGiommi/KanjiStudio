@@ -23,7 +23,7 @@ function meaningOf(kanji: Kanji): string {
 
 export default function ReviewPage() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, recordStudyActivity } = useAuth()
 
   const [loading, setLoading] = useState(true)
   const [queue, setQueue] = useState<ReviewCard[]>([])
@@ -66,6 +66,7 @@ export default function ReviewPage() {
     setBusy(true)
     const now = Date.now()
     const updated = await gradeReview(user.uid, current, grade, now)
+    if (reviewedCount === 0) void recordStudyActivity()
     setReviewedCount((c) => c + 1)
     setRevealed(false)
     setQueue((prev) => {

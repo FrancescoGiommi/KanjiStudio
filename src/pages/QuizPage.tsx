@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, CheckCircle2, Play, RotateCcw, XCircle, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import kanjiData, { type Kanji } from '../data/kanjiData'
+import { useAuth } from '../contexts/AuthContext'
 
 type QuizLevel = 'all' | 1 | 2 | 3 | 4 | 5
 type QuizMode = 'meaning' | 'kanji'
@@ -105,6 +106,7 @@ function createQuestions(level: QuizLevel, mode: QuizMode): QuizQuestion[] {
 
 export default function QuizPage() {
   const navigate = useNavigate()
+  const { recordStudyActivity } = useAuth()
   const [level, setLevel] = useState<QuizLevel>('all')
   const [mode, setMode] = useState<QuizMode>('meaning')
   const [phase, setPhase] = useState<QuizPhase>('setup')
@@ -160,6 +162,7 @@ export default function QuizPage() {
 
     if (answers.length === questions.length) {
       setPhase('finished')
+      void recordStudyActivity()
       return
     }
 

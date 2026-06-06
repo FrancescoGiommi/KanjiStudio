@@ -33,7 +33,7 @@ const itemVariants = {
 }
 
 export default function Dashboard() {
-  const { user, logout, learnedKanji } = useAuth()
+  const { user, logout, learnedKanji, streak } = useAuth()
   const navigate = useNavigate()
   const [dueCount, setDueCount] = useState<number | null>(null)
 
@@ -88,7 +88,7 @@ export default function Dashboard() {
             variants={itemVariants}
             className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-red-500 shadow-lg shadow-orange-900/30 font-bold text-lg w-fit"
           >
-            <Flame size={22} /> 7 giorni di streak
+            <Flame size={22} /> {streak} {streak === 1 ? 'giorno' : 'giorni'} di streak
           </motion.div>
         </motion.div>
 
