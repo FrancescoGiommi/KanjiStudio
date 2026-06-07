@@ -1,18 +1,14 @@
-// Accesso a Firestore per lo storico dei quiz e le statistiche per kanji.
-//   users/{uid}/quizSessions/{autoId}  -> una riga per sessione di quiz
-//   users/{uid}/kanjiStats/{character} -> contatori cumulativi per ogni kanji
+// Accesso a Firestore per lo storico dei quiz.
+//   users/{uid}/quizSessions/{autoId} -> una riga per sessione di quiz
 
 import {
   addDoc,
   collection,
-  doc,
   getDocs,
-  increment,
   limit as fbLimit,
   orderBy,
   query,
   serverTimestamp,
-  writeBatch,
   Timestamp,
 } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
@@ -29,39 +25,15 @@ export interface QuizSession {
   createdAt: number | null // epoch ms (null finché il server non ha scritto il timestamp)
 }
 
-export interface KanjiAnswer {
-  character: string
-  isCorrect: boolean
-}
-
-// Salva una sessione di quiz e aggiorna in modo atomico le statistiche per kanji.
+// Salva una sessione di quiz nello storico.
 export async function saveQuizResult(
   uid: string,
   summary: { mode: QuizMode; level: QuizLevel; score: number; total: number },
-  answers: KanjiAnswer[],
 ): Promise<void> {
-  // 1) Riga della sessione nello storico.
   await addDoc(collection(db, 'users', uid, 'quizSessions'), {
     ...summary,
     createdAt: serverTimestamp(),
   })
-
-  // 2) Contatori per kanji, tutti in un'unica scrittura batch.
-  const batch = writeBatch(db)
-  for (const { character, isCorrect } of answers) {
-    const ref = doc(db, 'users', uid, 'kanjiStats', character)
-    batch.set(
-      ref,
-      {
-        character,
-        seen: increment(1),
-        correct: increment(isCorrect ? 1 : 0),
-        lastSeen: serverTimestamp(),
-      },
-      { merge: true },
-    )
-  }
-  await batch.commit()
 }
 
 // Ultime sessioni di quiz, dalla più recente.

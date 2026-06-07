@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Mail, Lock, AlertCircle } from 'lucide-react'
+import { X, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { authErrorMessage } from '../utils/authErrors'
 
@@ -9,16 +9,24 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ onClose }: AuthModalProps) {
-  const { loginWithEmail, registerWithEmail } = useAuth()
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const { loginWithEmail, registerWithEmail, resetPassword } = useAuth()
+  const [mode, setMode] = useState<'login' | 'register' | 'reset'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const switchMode = (next: 'login' | 'register' | 'reset') => {
+    setMode(next)
+    setError('')
+    setInfo('')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setInfo('')
 
     // Validazione client-side: feedback immediato senza chiamata di rete.
     if (mode === 'register' && password.length < 6) {
@@ -30,10 +38,14 @@ export default function AuthModal({ onClose }: AuthModalProps) {
     try {
       if (mode === 'login') {
         await loginWithEmail(email, password)
-      } else {
+        onClose()
+      } else if (mode === 'register') {
         await registerWithEmail(email, password)
+        onClose()
+      } else {
+        await resetPassword(email)
+        setInfo('Ti abbiamo inviato un’email per reimpostare la password. Controlla la posta (anche lo spam).')
       }
-      onClose()
     } catch (err: unknown) {
       setError(authErrorMessage(err))
     } finally {
@@ -63,10 +75,14 @@ export default function AuthModal({ onClose }: AuthModalProps) {
           </button>
 
           <h2 className="text-2xl font-extrabold mb-1">
-            {mode === 'login' ? 'Bentornato!' : 'Crea account'}
+            {mode === 'login' ? 'Bentornato!' : mode === 'register' ? 'Crea account' : 'Reimposta password'}
           </h2>
           <p className="text-slate-400 text-sm mb-6">
-            {mode === 'login' ? 'Accedi per continuare a studiare.' : 'Inizia il tuo percorso JLPT.'}
+            {mode === 'login'
+              ? 'Accedi per continuare a studiare.'
+              : mode === 'register'
+                ? 'Inizia il tuo percorso JLPT.'
+                : 'Inserisci la tua email: ti invieremo un link per reimpostarla.'}
           </p>
 
 
@@ -82,17 +98,29 @@ export default function AuthModal({ onClose }: AuthModalProps) {
                 className="w-full pl-9 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
-            <div className="relative">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full pl-9 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-            </div>
+            {mode !== 'reset' && (
+              <div className="relative">
+                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full pl-9 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+              </div>
+            )}
+
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={() => switchMode('reset')}
+                className="self-end text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
+              >
+                Password dimenticata?
+              </button>
+            )}
 
             {error && (
               <div
@@ -104,24 +132,51 @@ export default function AuthModal({ onClose }: AuthModalProps) {
               </div>
             )}
 
+            {info && (
+              <div
+                role="status"
+                className="flex items-start gap-2 rounded-xl bg-green-500/10 border border-green-500/30 px-3 py-2 text-green-300 text-sm"
+              >
+                <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+                <span>{info}</span>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 font-bold transition-all disabled:opacity-50"
             >
-              {loading ? 'Caricamento…' : mode === 'login' ? 'Accedi' : 'Registrati'}
+              {loading
+                ? 'Caricamento…'
+                : mode === 'login'
+                  ? 'Accedi'
+                  : mode === 'register'
+                    ? 'Registrati'
+                    : 'Invia link di reset'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-400 mt-4">
-            {mode === 'login' ? 'Non hai un account?' : 'Hai già un account?'}{' '}
-            <button
-              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}
-              className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
-            >
-              {mode === 'login' ? 'Registrati' : 'Accedi'}
-            </button>
-          </p>
+          {mode === 'reset' ? (
+            <p className="text-center text-sm text-slate-400 mt-4">
+              <button
+                onClick={() => switchMode('login')}
+                className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
+              >
+                ← Torna al login
+              </button>
+            </p>
+          ) : (
+            <p className="text-center text-sm text-slate-400 mt-4">
+              {mode === 'login' ? 'Non hai un account?' : 'Hai già un account?'}{' '}
+              <button
+                onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
+                className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
+              >
+                {mode === 'login' ? 'Registrati' : 'Accedi'}
+              </button>
+            </p>
+          )}
         </div>
       </motion.div>
     </AnimatePresence>

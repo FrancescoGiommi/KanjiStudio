@@ -3,6 +3,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   type User as FirebaseUser,
 } from 'firebase/auth'
@@ -19,6 +20,7 @@ interface AuthContextType {
   streak: number
   loginWithEmail: (email: string, password: string) => Promise<void>
   registerWithEmail: (email: string, password: string) => Promise<void>
+  resetPassword: (email: string) => Promise<void>
   logout: () => Promise<void>
   toggleLearned: (character: string, jlpt: 1 | 2 | 3 | 4 | 5) => Promise<void>
   recordStudyActivity: () => Promise<void>
@@ -105,6 +107,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await createUserProfileIfMissing(user)
   }
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email)
+  }
+
   const logout = async () => {
     await signOut(auth)
   }
@@ -140,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const currentStreak = displayStreak(streak, lastStudyDate, todayKey(new Date()))
 
   return (
-    <AuthContext.Provider value={{ user, loading, learnedKanji, streak: currentStreak, loginWithEmail, registerWithEmail, logout, toggleLearned, recordStudyActivity }}>
+    <AuthContext.Provider value={{ user, loading, learnedKanji, streak: currentStreak, loginWithEmail, registerWithEmail, resetPassword, logout, toggleLearned, recordStudyActivity }}>
       {!loading && children}
     </AuthContext.Provider>
   )

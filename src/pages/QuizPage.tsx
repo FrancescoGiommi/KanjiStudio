@@ -179,16 +179,7 @@ export default function QuizPage() {
     setPhase('finished')
     void recordStudyActivity()
     if (!user) return
-    const charById = new Map(questions.map((q) => [q.id, q.kanji.character]))
-    const perKanji = answers.map((a) => ({
-      character: charById.get(a.questionId) ?? '',
-      isCorrect: a.isCorrect,
-    }))
-    void saveQuizResult(
-      user.uid,
-      { mode, level, score, total: questions.length },
-      perKanji,
-    )
+    void saveQuizResult(user.uid, { mode, level, score, total: questions.length })
   }
 
   const goToNextQuestion = () => {
