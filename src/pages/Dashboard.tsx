@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Flame, Star, BookOpen, Zap, RotateCcw, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import kanjiData, { LEVEL_COUNTS, TOTAL_COUNT } from '../data/kanjiData'
+import kanjiData, { LEVEL_COUNTS, TOTAL_COUNT, getKanjiOfTheDay } from '../data/kanjiData'
 import { countDueReviews } from '../srs/reviews'
 
 const LEVEL_META = [
@@ -13,14 +13,6 @@ const LEVEL_META = [
   { level: 'N2', jlpt: 2 as const, color: 'from-purple-400 to-violet-500' },
   { level: 'N1', jlpt: 1 as const, color: 'from-pink-500 to-rose-500' },
 ]
-
-const KANJI_OF_THE_DAY = {
-  kanji: '愛',
-  meaning: 'Amore, affetto',
-  on: 'アイ',
-  kun: 'いと.しい、かな.しい',
-  level: 'N3',
-}
 
 const containerVariants = {
   hidden: {},
@@ -43,6 +35,9 @@ export default function Dashboard() {
   }, [user])
 
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Utente'
+
+  const kanjiOfTheDay = useMemo(() => getKanjiOfTheDay(new Date()), [])
+  const kotdMeaning = kanjiOfTheDay.meanings_it?.[0] ?? kanjiOfTheDay.meanings[0] ?? '—'
 
   const jlptLevels = LEVEL_META.map(({ level, jlpt, color }) => {
     const inDataset = kanjiData.filter((k) => k.jlpt === jlpt)
@@ -116,15 +111,15 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between text-sm text-indigo-300 font-semibold">
               <span className="flex items-center gap-1"><Star size={14} /> Kanji del giorno</span>
-              <span className="px-2 py-0.5 rounded-full bg-indigo-600/50 text-xs">{KANJI_OF_THE_DAY.level}</span>
+              <span className="px-2 py-0.5 rounded-full bg-indigo-600/50 text-xs">N{kanjiOfTheDay.jlpt}</span>
             </div>
             <div className="text-8xl text-center font-bold py-4 select-none">
-              {KANJI_OF_THE_DAY.kanji}
+              {kanjiOfTheDay.character}
             </div>
             <div className="text-center">
-              <p className="text-lg font-bold">{KANJI_OF_THE_DAY.meaning}</p>
-              <p className="text-sm text-slate-400 mt-1">On: <span className="text-white">{KANJI_OF_THE_DAY.on}</span></p>
-              <p className="text-sm text-slate-400">Kun: <span className="text-white">{KANJI_OF_THE_DAY.kun}</span></p>
+              <p className="text-lg font-bold">{kotdMeaning}</p>
+              <p className="text-sm text-slate-400 mt-1">On: <span className="text-white">{kanjiOfTheDay.readings_on[0] ?? '—'}</span></p>
+              <p className="text-sm text-slate-400">Kun: <span className="text-white">{kanjiOfTheDay.readings_kun[0] ?? '—'}</span></p>
             </div>
           </motion.div>
 

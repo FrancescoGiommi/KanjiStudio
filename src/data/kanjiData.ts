@@ -28,6 +28,13 @@ export const LEVEL_COUNTS: Record<1 | 2 | 3 | 4 | 5, number> = kanjiData.reduce(
 
 export const TOTAL_COUNT = kanjiData.length
 
+// Kanji del giorno: scelto in modo deterministico dalla data, così è uguale per
+// tutti gli utenti nella stessa giornata e ruota su tutto il dataset nel tempo.
+export function getKanjiOfTheDay(now: Date): Kanji {
+  const epochDay = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86_400_000)
+  return kanjiData[epochDay % kanjiData.length]
+}
+
 export const getKanjiByLevel = (level: 1 | 2 | 3 | 4 | 5): Kanji[] =>
   kanjiData.filter((k) => k.jlpt === level)
 
