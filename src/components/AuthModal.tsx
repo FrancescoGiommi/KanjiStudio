@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Mail, Lock } from 'lucide-react'
+import { X, Mail, Lock, AlertCircle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { authErrorMessage } from '../utils/authErrors'
 
 interface AuthModalProps {
   onClose: () => void
@@ -18,6 +19,13 @@ export default function AuthModal({ onClose }: AuthModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Validazione client-side: feedback immediato senza chiamata di rete.
+    if (mode === 'register' && password.length < 6) {
+      setError('La password deve avere almeno 6 caratteri.')
+      return
+    }
+
     setLoading(true)
     try {
       if (mode === 'login') {
@@ -27,16 +35,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
       }
       onClose()
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Errore sconosciuto'
-      if (msg.includes('invalid-credential') || msg.includes('wrong-password')) {
-        setError('Email o password errati.')
-      } else if (msg.includes('email-already-in-use')) {
-        setError('Email già registrata.')
-      } else if (msg.includes('weak-password')) {
-        setError('Password troppo corta (minimo 6 caratteri).')
-      } else {
-        setError('Errore. Riprova.')
-      }
+      setError(authErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -95,7 +94,15 @@ export default function AuthModal({ onClose }: AuthModalProps) {
               />
             </div>
 
-            {error && <p className="text-red-400 text-xs">{error}</p>}
+            {error && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/30 px-3 py-2 text-red-300 text-sm"
+              >
+                <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
 
             <button
               type="submit"
