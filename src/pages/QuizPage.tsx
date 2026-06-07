@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, CheckCircle2, Play, RotateCcw, XCircle, Zap } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, History, Play, RotateCcw, XCircle, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import kanjiData, { type Kanji } from '../data/kanjiData'
 import { useAuth } from '../contexts/AuthContext'
+import { getRecentQuizzes, saveQuizResult, type QuizSession } from '../quiz/quizStats'
 
 type QuizLevel = 'all' | 1 | 2 | 3 | 4 | 5
 type QuizMode = 'meaning' | 'kanji'
@@ -62,6 +63,16 @@ function getModeLabel(mode: QuizMode): string {
   return MODES.find((item) => item.value === mode)?.label ?? 'Quiz'
 }
 
+function formatQuizDate(createdAt: number | null): string {
+  if (!createdAt) return 'Adesso'
+  return new Date(createdAt).toLocaleDateString('it-IT', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 function createQuestions(level: QuizLevel, mode: QuizMode): QuizQuestion[] {
   const levelPool = level === 'all' ? kanjiData : kanjiData.filter((kanji) => kanji.jlpt === level)
   const selectedKanji = shuffle(levelPool).slice(0, 10)
@@ -106,7 +117,7 @@ function createQuestions(level: QuizLevel, mode: QuizMode): QuizQuestion[] {
 
 export default function QuizPage() {
   const navigate = useNavigate()
-  const { recordStudyActivity } = useAuth()
+  const { user, recordStudyActivity } = useAuth()
   const [level, setLevel] = useState<QuizLevel>('all')
   const [mode, setMode] = useState<QuizMode>('meaning')
   const [phase, setPhase] = useState<QuizPhase>('setup')
@@ -114,6 +125,13 @@ export default function QuizPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<QuizAnswer[]>([])
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [recentQuizzes, setRecentQuizzes] = useState<QuizSession[]>([])
+
+  // Carica lo storico recente quando si entra (o si torna) nella schermata di setup.
+  useEffect(() => {
+    if (!user || phase !== 'setup') return
+    getRecentQuizzes(user.uid).then(setRecentQuizzes).catch(() => setRecentQuizzes([]))
+  }, [user, phase])
 
   const currentQuestion = questions[currentIndex]
   const score = useMemo(() => answers.filter((answer) => answer.isCorrect).length, [answers])
@@ -157,12 +175,27 @@ export default function QuizPage() {
     ])
   }
 
+  const finishQuiz = () => {
+    setPhase('finished')
+    void recordStudyActivity()
+    if (!user) return
+    const charById = new Map(questions.map((q) => [q.id, q.kanji.character]))
+    const perKanji = answers.map((a) => ({
+      character: charById.get(a.questionId) ?? '',
+      isCorrect: a.isCorrect,
+    }))
+    void saveQuizResult(
+      user.uid,
+      { mode, level, score, total: questions.length },
+      perKanji,
+    )
+  }
+
   const goToNextQuestion = () => {
     setSelectedAnswer(null)
 
     if (answers.length === questions.length) {
-      setPhase('finished')
-      void recordStudyActivity()
+      finishQuiz()
       return
     }
 
@@ -263,6 +296,37 @@ export default function QuizPage() {
               <Play size={18} />
               Avvia quiz
             </button>
+          </motion.section>
+        )}
+
+        {phase === 'setup' && recentQuizzes.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 rounded-2xl bg-white/5 border border-white/10 p-6"
+          >
+            <h2 className="flex items-center gap-2 font-bold text-lg mb-4">
+              <History size={18} className="text-orange-300" /> Ultimi quiz
+            </h2>
+            <div className="flex flex-col gap-2">
+              {recentQuizzes.map((session) => (
+                <div
+                  key={session.id}
+                  className="flex items-center justify-between gap-4 rounded-xl bg-white/[0.03] border border-white/[0.07] px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold truncate">
+                      {getModeLabel(session.mode)} · {getLevelLabel(session.level)}
+                    </p>
+                    <p className="text-xs text-slate-500">{formatQuizDate(session.createdAt)}</p>
+                  </div>
+                  <span className="font-extrabold shrink-0">
+                    {session.score}
+                    <span className="text-sm text-slate-500"> / {session.total}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
           </motion.section>
         )}
 

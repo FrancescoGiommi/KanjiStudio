@@ -7,8 +7,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
 
-      // ...e le proprie carte di ripasso a ripetizione spaziata.
-      match /reviews/{character} {
+      // ...e tutte le proprie sottocollezioni (reviews, quizSessions, kanjiStats, ...).
+      match /{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
